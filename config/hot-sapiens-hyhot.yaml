@@ -1,0 +1,74 @@
+DATASET:
+  root_dataset: "./data/HOT"
+  list_train:   "./data/hot_train.odgt"
+  list_val:     "./data/hot_val.odgt"
+  list_test:    "./data/hot_test.odgt"
+  num_class: 18
+  depth_subdir: depth
+  person_mask_subdir: segments_lang_sam
+  imgSizes: (224,)
+  imgMaxSize: 224
+  padding_constant: 32
+  segm_downsampling_rate: 4
+  random_flip: True
+  train_resize_to: 512
+  train_crop_to: 384
+
+MODEL:
+  arch_encoder: "sapiens_scls_smap"
+  arch_decoder: "hhd"
+  fc_dim: 2048
+  sapiens_arch: "sapiens2_0.4b"
+  pretrained: "./sapiens2/sapiens2_host/sapiens2_0.4b_seg.safetensors"
+  weights_encoder: ""
+  weights_decoder: ""
+  decoder_in_channel: 2048
+  decoder_dim: 256
+  decoder_heads: 8
+  decoder_pixel_layers: 2
+  decoder_layers: 3
+  decoder_queries: 18
+  decoder_dropout: 0.1
+  decoder_drop_path: 0.1
+  decoder_ffn_ratio: 4
+  decoder_smap_alpha_init: 0.0
+  decoder_deep_sup: True       
+  decoder_soft_mask_bias: True 
+  use_sim_loss: True
+  use_union_loss: True
+  use_global_loss: True
+  use_smap_loss: True
+  use_denoising: False
+
+LOSS:
+  sim_weight: 0.01
+  union_weight: 0.01
+  global_weight: 0.01
+  smap_weight: 0.01
+  denoising_weight: 0.0
+  deep_sup_weight: 0.4        
+
+TRAIN:
+  batch_size_per_gpu: 16       
+  num_epoch: 20              
+  start_epoch: 0               
+  epoch_iters: 2000
+  optim: "AdamW"
+  lr_encoder: 5e-5            
+  lr_decoder: 5e-5     
+  lr_pow: 0.9
+  weight_decay: 1e-4
+  fix_bn: False
+  workers: 8
+  disp_iter: 20
+  seed: 304
+
+VAL:
+  batch_size: 1
+  checkpoint: "epoch_20.pth"
+
+TEST:
+  checkpoint: "epoch_20.pth"
+  visualize: True
+
+DIR: "ckpt/hot-sapiens-hyhot"
