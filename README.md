@@ -104,9 +104,17 @@ sh ./show_loss.sh
 ```
 
 ## Citation
+This paper has been accepted to ACCV 2026. The proceedings and arXiv version are not yet available; the BibTeX below will be updated once they are released.
+
+If you find this work useful, please cite:
 
 ```bibtex
-TODO
+@inproceedings{chen2026hybridhot,
+  author    = {Chen, Qihui and Chen, Junwen and Yanai, Keiji},
+  title     = {{HybridHOT}: Learning Human-Centric Priors for Fine-Grained Human--Object Contact Segmentation},
+  booktitle = {Proceedings of the Asian Conference on Computer Vision (ACCV)},
+  year      = {2026}
+}
 ```
 
 ## Acknowledgement
