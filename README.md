@@ -10,7 +10,7 @@
   </div>
 
 ## Environment
-Please first install the following environment:
+Please first install the following sapiens2 and environment:
 - python 3.11
 - pytorch 2.5.1 (cu121)
 - torchvision 0.19.1 (cu121)
