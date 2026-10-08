@@ -342,13 +342,7 @@ class ModelBuilder:
     def build_encoder(arch='resnet50dilated', fc_dim=512, weights='', cfg=None):
         pretrained = True if len(weights) == 0 else False
         arch = arch.lower()
-        if arch == 'clip_rn50':
-            # Baseline (P3HOT): CLIP RN50 visual + text-similarity prior.
-            from .encoders.clip_rn50_adapter import CLIPRN50Adapter
-            num_class = cfg.DATASET.num_class if cfg is not None else 18
-            net_encoder = CLIPRN50Adapter(num_class=num_class, weights=weights)
-            return net_encoder
-        elif arch == 'sapiens_scls_smap':
+        if arch == 'sapiens_scls_smap':
             # Sapiens2 ViT + FPN Adapter + S_cls + S_map.
             from .encoders.sapiens_scls_smap import build_sapiens_scls_smap
             assert cfg is not None, "sapiens_scls_smap encoder requires cfg"

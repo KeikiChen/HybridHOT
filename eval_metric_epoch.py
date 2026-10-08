@@ -89,7 +89,7 @@ def evaluate(segmentation_module, loader, cfg, gpu, epoch):
         ad_iou_meter.update(ad_iou)
         neg_iou_meter.update(neg_iou)
         pbar.update(1)
-        with open(os.path.join("./ckpt/hot-c1", f"epoch_{epoch}.txt"), "a+") as f:
+        with open(os.path.join(cfg.DIR, f"epoch_{epoch}.txt"), "a+") as f:
             f.write(os.path.basename(img_path) + " " + str(neg_iou) + "\n")
 
     
@@ -114,7 +114,7 @@ def evaluate(segmentation_module, loader, cfg, gpu, epoch):
     print('[Eval Summary]:')
     print('Mean IoU: {:.4f}, Accuracy: {:.2f}%, Inference Time: {:.4f}s'
           .format(iou.mean(), acc_meter.average()*100, time_meter.average()))
-    with open("./save_all_result.txt", "a+") as f:
+    with open(os.path.join(cfg.DIR, "save_all_result.txt"), "a+") as f:
         f.write(str(epoch) + " " + str(iou.mean()) + " " + str(acc_meter.average()*100) + "\n")
     with open(os.path.join(cfg.DIR, 'validation_metric_epoch_'+epoch+ '.pkl'), 'wb') as f:
         pickle.dump(save_result, f, pickle.HIGHEST_PROTOCOL)
@@ -171,7 +171,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--cfg",
-        default="config/hot-resnet50dilated-ppm_deepsup.yaml",
+        default="config/hot-sapiens-hyhot.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,

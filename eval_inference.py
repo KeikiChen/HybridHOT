@@ -1,39 +1,12 @@
-"""Inference-and-visualize driver for the hyhot framework.
+"""Inference + visualization on the test split (cfg.DATASET.list_test).
 
-Adapted from HOT/eval_inference.py and PIHOT/eval_inference.py, but wired up
-to hyhot's unified ModelBuilder + SegmentationModule so it works with every
-encoder/decoder pair listed under `hyhot/hot/models/models.py:build_encoder`
-and `build_decoder`. In particular:
+Loads encoder_epoch_<N>.pth / decoder_epoch_<N>.pth from cfg.DIR and saves
+`[image | prediction overlay]` images to `<cfg.DIR>/result_epoch_<N>/`.
 
-  * hyhot's SegmentationModule.forward(feed_dict, segSize=...) returns a
-    2-tuple (pred, final_mask) at inference (see
-    hyhot/hot/models/models.py:247-250). `pred` is already softmax-ed because
-    the decoder is built with `use_softmax=True`.
-  * hyhot's TestDataset is single-scale (respects cfg.DATASET.train_crop_to,
-    default 224). No `imgSizes` loop is needed — unlike HOT/eval_inference.py,
-    which averaged over multi-scale resizes.
-
-Feed-dict fed to the model (single-image, batch dim added below):
-
-    img_data     : (1, 3, H, W)          normalized RGB (CLIP-mean/std)
-    seg_label    : (H/4, W/4)            GT part map (only used for segSize)
-    depth_label  : (1, H/4, W/4)         normalized depth ∈ [0, 1]
-    person_mask  : (1, K_person, H/4, W/4) per-person masks
-    total_person : int
-    segSize=(H_out, W_out)               = seg_label.shape
-
-Model output (post-argmax):
-
-    pred : (H_out, W_out) int in [0, num_class-1]  — final part segmentation
-
-Visualization saved to `<cfg.DIR>/result_epoch_<epoch>/`:
-    `[img | Image.blend(img, colorEncode(pred), 0.7)]`
-matching HOT/eval_inference.py and PIHOT/eval_inference.py verbatim.
-
-Usage (from hyhot/):
+Usage (from HybridHOT_release/):
 
     python eval_inference.py \\
-        --cfg config/sapiens_scls_smap_hhd.yaml \\
+        --cfg config/hot-sapiens-hyhot.yaml \\
         --gpu 0 --epoch 20
 """
 
@@ -195,9 +168,9 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--cfg",
-        default="config/sapiens_scls_smap_hhd.yaml",
+        default="config/hot-sapiens-hyhot.yaml",
         metavar="FILE",
-        help="path to a hyhot/config/*.yaml",
+        help="path to a config/*.yaml",
         type=str,
     )
     parser.add_argument("--gpu",   default=0, type=int, help="gpu to use")

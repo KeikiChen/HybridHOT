@@ -1,43 +1,17 @@
-"""
-HybridHOTDecoder (HHD) — drop-in replacement for the legacy P3HOT U-Net Decoder.
+"""HybridHOT Decoder (HHD).
 
-Design implemented from `scripts/sapiens/decoder_plan.md`:
+Multi-scale pixel decoder + depth / person-mask conditioned feature modulation
++ person-aware mask transformer decoder (one query per class), with optional
+fusion of the encoder's spatial prior S_map and deep supervision.
 
-  Block A — MS-PD : Multi-Scale Pixel Decoder
-                    Lateral 1x1 to common dim C, dense Transformer encoder
-                    over the three deepest scales {x4, x3, x2}, then FPN
-                    top-down to H/4 (x1 enters as a high-res lateral).
-  Block B — DCFM  : Depth-Conditioned Feature Modulation
-                    FiLM (gamma, beta) predicted from depth + aggregated
-                    person_mask. Replaces P3HOT's hand-crafted depth_range
-                    Python for-loop, fully vectorized.
-  Block C — PMTD  : Person-aware Mask Transformer Decoder
-                    18 queries (BG + 17 body parts). Queries 1..17 are
-                    bootstrap-biased by S_cls. L decoder layers each do
-                    MaskedCrossAttn -> SelfAttn -> FFN. The masked attention
-                    uses the previous layer's mask logits AND a log(person)
-                    bias on FG queries.
-  Block D — Prior Fusion : pred = mask_logits_L + alpha * pad(S_map),
-                    where alpha is learnable (init 0). Lets the encoder's
-                    spatial body-part prior reach the output (not only the
-                    auxiliary loss).
-  Block E — Deep supervision : intermediate mask logits cached on
-                    `self._aux_mask_logits`; loss is `decoder.deep_sup_loss(
-                    seg_label, crit)`. Off by default (Stage S5 only).
+Usage (selected in the config, built by ModelBuilder.build_decoder):
 
-Compatibility:
-  - Constructor:  HybridHOTDecoder(in_channel=2048, output_channel=18, ...)
-    matches the legacy `hot.models.decoder.Decoder` constructor.
-  - Forward signature is identical for the first 9 args, with one NEW
-    optional trailing kwarg `S_map=None`:
-        forward(x4, x3, x2, x1, x0, logits_per_image,
-                person_mask, total_person, depth, S_map=None)
-  - Output shape and dtype: `pred (B, 18, H/4, W/4)` raw logits — same as
-    legacy, drop-in for CrossEntropy + multi_class_union_loss + global_loss
-    + pixel_acc.
-  - `accepts_smap = True` class attribute lets the variant glue
-    (sapiens_scls_smap.py / sapiens_full.py / models_sapiens_encoder.py)
-    detect whether to forward S_map via kwarg.
+    MODEL:
+      arch_decoder: "hhd"
+
+    pred = decoder(x4, x3, x2, x1, x0, prior_logits,
+                   person_mask, total_person, depth, S_map=S_map)
+    # pred: (B, num_class, H/4, W/4) raw logits
 """
 
 import torch

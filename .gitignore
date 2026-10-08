@@ -45,5 +45,6 @@ htmlcov/
 Thumbs.db
 *.swp
 
-datasets/
-
+data/
+sapiens2/
+HOT/

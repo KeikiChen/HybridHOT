@@ -340,7 +340,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--cfg",
-        default="config/hot-resnet50dilated-c1.yaml",
+        default="config/hot-sapiens-hyhot.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,

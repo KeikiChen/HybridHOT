@@ -1,7 +1,7 @@
 """Sapiens-Scls-Smap encoder.
 
 Wraps a Sapiens2 ViT backbone and returns the dict format shared by every
-encoder in this package. The Sapiens2 code lives under `hyhot/sapiens2/`;
+encoder in this package. The Sapiens2 code lives under `sapiens2/`;
 this file adds that folder to sys.path so the `sapiens` package can be
 imported.
 """
