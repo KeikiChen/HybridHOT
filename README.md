@@ -9,16 +9,35 @@
     <img src="./assets/paper.png" alt="Logo" width="100%">
   </div>
 
-## Environment
-Please first install the following sapiens2 and environment:
-- python 3.11
-- pytorch 2.5.1 (cu121)
-- torchvision 0.19.1 (cu121)
-
 ## Installation
+
+**Requirements:** Linux (tested on Ubuntu 20.04), Python 3.12, PyTorch 2.5.1 + torchvision 0.20.1 (CUDA 12.1). Our experiments were run on 8× NVIDIA RTX A6000 (48 GB).
+
+```bash
+git clone https://github.com/KeikiChen/HybridHOT.git && cd HybridHOT
+
+# 1. Environment
+uv venv --python 3.12 && source .venv/bin/activate
+
+# 2. PyTorch (install first)
+uv pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+
+# 3. Sapiens2 source code (do NOT pip install it)
+git clone https://github.com/facebookresearch/sapiens2.git
+git -C sapiens2 checkout 7e5bae88456ac418ff0e58e74106c9fe192055d4
+
+# 4. Other dependencies
+uv pip install -r requirements.txt
+
+# 5. Sapiens2-0.4B checkpoint
+hf download facebook/sapiens2-seg-0.4b sapiens2_0.4b_seg.safetensors --local-dir sapiens2/sapiens2_host
+
+# 6. Check (expected: 2.5.1+cu121 True)
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ```
-pip3 install -r requirements.txt
-```
+
+> [!NOTE]
+> Do not run `pip install -e .` in `sapiens2/`. It requires `torch>=2.7` and would replace the PyTorch installed above. HyHOT imports Sapiens2 directly from `./sapiens2`.
 
 ## Data Preparation
 - Data: download the HOT dataset from the [project website](https://hot.is.tue.mpg.de) and unzip to `/path/to/dataset`. Then:
@@ -59,7 +78,7 @@ Please note that in order to keep the original image and the inpainting image at
 
 
 ## Sapiens2 Encoder
-HyHOT uses the [Sapiens2](https://about.meta.com/realitylabs/codecavatars/sapiens) ViT backbone as the image encoder. Place the Sapiens2 source code under `./sapiens2/` so that `sapiens.backbones.standalone.sapiens2` can be imported, and put the pretrained weights under `./sapiens2/sapiens2_host/`.
+HyHOT uses the [Sapiens2](https://about.meta.com/realitylabs/codecavatars/sapiens) ViT backbone as the image encoder. The source code and the default checkpoint are set up in [Installation](#installation) (steps 3 and 5). Other checkpoints are listed in the Sapiens2 [MODEL_ZOO](https://github.com/facebookresearch/sapiens2/blob/main/docs/MODEL_ZOO.md). Put them under `./sapiens2/sapiens2_host/` and point `MODEL.pretrained` to the file.
 
 Supported `MODEL.sapiens_arch` variants (set in `config/hot-sapiens-hyhot.yaml`):
 
