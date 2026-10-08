@@ -1,43 +1,48 @@
 <p align="center">
 
-  <h1 align="center">HyHOT: Learning Human-Centric Priors for Fine-Grained Human-Object Contact Segmentation
-</h1>
+  <h1 align="center">HybridHOT: Learning Human-Centric Priors for Fine-Grained Human-Object Contact Segmentation</h1>
   <p align="center">
-    <strong>HybridHOT: Learning Human-Centric Priors for Fine-Grained Human-Object Contact Segmentation</strong>
+    <strong>Qihui Chen</strong>
+    ·
+    <strong>Junwen Chen</strong>
+    ·
+    <strong>Keiji Yanai</strong>
   </p>
+  <h2 align="center">ACCV 2026</h2>
   <div align="center">
     <img src="./assets/paper.png" alt="Logo" width="100%">
   </div>
+</p>
+
+## Environment
+The code is developed and tested under the following configurations.
+- Hardware: 8× NVIDIA RTX A6000 (48 GB) for training, Ubuntu 20.04
+- Software: Python 3.12, PyTorch 2.5.1, torchvision 0.20.1, CUDA 12.1
 
 ## Installation
-
-**Requirements:** Linux (tested on Ubuntu 20.04), Python 3.12, PyTorch 2.5.1 + torchvision 0.20.1 (CUDA 12.1). Our experiments were run on 8× NVIDIA RTX A6000 (48 GB).
-
+**Clone the repository:**
 ```bash
-git clone https://github.com/KeikiChen/HybridHOT.git && cd HybridHOT
-
-# 1. Environment
-uv venv --python 3.12 && source .venv/bin/activate
-
-# 2. PyTorch (install first)
-uv pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
-
-# 3. Sapiens2 source code (do NOT pip install it)
-git clone https://github.com/facebookresearch/sapiens2.git
-git -C sapiens2 checkout 7e5bae88456ac418ff0e58e74106c9fe192055d4
-
-# 4. Other dependencies
-uv pip install -r requirements.txt
-
-# 5. Sapiens2-0.4B checkpoint
-hf download facebook/sapiens2-seg-0.4b sapiens2_0.4b_seg.safetensors --local-dir sapiens2/sapiens2_host
-
-# 6. Check (expected: 2.5.1+cu121 True)
-python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+git clone https://github.com/KeikiChen/HybridHOT.git
+cd HybridHOT
 ```
 
-> [!NOTE]
-> Do not run `pip install -e .` in `sapiens2/`. It requires `torch>=2.7` and would replace the PyTorch installed above. HyHOT imports Sapiens2 directly from `./sapiens2`.
+**Create the environment** with [uv](https://docs.astral.sh/uv/) and install PyTorch first:
+```bash
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+```
+
+**Get the Sapiens2 source code.** HyHOT imports [Sapiens2](https://github.com/facebookresearch/sapiens2) from `./sapiens2`, so do not run `pip install -e .` there. It requires `torch>=2.7` and would replace the PyTorch installed above.
+```bash
+git clone https://github.com/facebookresearch/sapiens2.git
+git -C sapiens2 checkout 7e5bae88456ac418ff0e58e74106c9fe192055d4
+```
+
+**Install the other dependencies:**
+```bash
+uv pip install -r requirements.txt
+```
 
 ## Data Preparation
 - Data: download the HOT dataset from the [project website](https://hot.is.tue.mpg.de) and unzip to `/path/to/dataset`. Then:
@@ -55,10 +60,14 @@ Project/
 |   |   |── HOT-Annotated
 |   |   |   |── images
 |   |   |   |── annotations
+|   |   |   |── segments_lang_sam    # see Segmentation Model
+|   |   |   |── depth                # see Depth Model
 |   |   |   |── ...
 |   |   |── HOT-Generated
 |   |   |   |── images
 |   |   |   |── annotations
+|   |   |   |── segments_lang_sam
+|   |   |   |── depth
 |   |   |   |── ...
 │   ├── hot_train.odgt
 │   ├── hot_test.odgt
@@ -67,20 +76,26 @@ Project/
 ```
 
 ## Segmentation Model
-
-We use the [SAM GitHub](https://github.com/paulguerrero/lang-sam) model to generate human masks and save them in the `./data/HOT/HOT-Annotated(HOT-Generated)/segments_lang_sam` directory.
-
+Person masks are generated with [LangSAM](https://github.com/luca-medeiros/lang-segment-anything) and saved to `./data/HOT/HOT-Annotated(HOT-Generated)/segments_lang_sam`. Please refer to [P3HOT](https://github.com/YuxiaoWang-AI/P3HOT) for details.
 
 ## Depth Model
-[ZoeDepth](https://github.com/isl-org/ZoeDepth) is used to generate depth map. [LaMa](https://hot.is.tue.mpg.de) model in combination with the human mask to reconstruct the occluded object information.
-Developers need to install the environment according to the official instructions of [ZoeDepth](https://github.com/isl-org/ZoeDepth) and save the generated depth map to the `./data/HOT/HOT-Annotated(HOT-Generated)/depth` directory.
-Please note that in order to keep the original image and the inpainting image at the same perspective, they need to be spliced ​​together and sent to the [ZoeDepth](https://github.com/isl-org/ZoeDepth) model.
-
+Depth maps are generated with [ZoeDepth](https://github.com/isl-org/ZoeDepth), using [LaMa](https://github.com/advimman/lama) inpainting to reconstruct the occluded object regions, and saved to `./data/HOT/HOT-Annotated(HOT-Generated)/depth`. Please refer to [P3HOT](https://github.com/YuxiaoWang-AI/P3HOT) for details.
 
 ## Sapiens2 Encoder
-HyHOT uses the [Sapiens2](https://about.meta.com/realitylabs/codecavatars/sapiens) ViT backbone as the image encoder. The source code and the default checkpoint are set up in [Installation](#installation) (steps 3 and 5). Other checkpoints are listed in the Sapiens2 [MODEL_ZOO](https://github.com/facebookresearch/sapiens2/blob/main/docs/MODEL_ZOO.md). Put them under `./sapiens2/sapiens2_host/` and point `MODEL.pretrained` to the file.
+HyHOT uses the [Sapiens2](https://github.com/facebookresearch/sapiens2) ViT backbone as the image encoder. Download checkpoints from [MODEL_ZOO.md](https://github.com/facebookresearch/sapiens2/blob/main/docs/MODEL_ZOO.md) and put them under `./sapiens2/sapiens2_host/`. The default config uses Sapiens2-0.4B:
+```bash
+hf download facebook/sapiens2-seg-0.4b sapiens2_0.4b_seg.safetensors --local-dir sapiens2/sapiens2_host
+```
+The directory structure is as follows:
+```
+sapiens2/
+├── sapiens/
+├── ...
+└── sapiens2_host/
+    └── sapiens2_0.4b_seg.safetensors
+```
 
-Supported `MODEL.sapiens_arch` variants (set in `config/hot-sapiens-hyhot.yaml`):
+Supported `MODEL.sapiens_arch` variants (set in `config/hot-sapiens-hyhot.yaml`). When switching to another variant, also set `MODEL.pretrained` to its checkpoint.
 
 | arch            | embed_dims | num_layers |
 |-----------------|------------|------------|
@@ -89,9 +104,6 @@ Supported `MODEL.sapiens_arch` variants (set in `config/hot-sapiens-hyhot.yaml`)
 | sapiens2_0.8b   | 1280       | 32         |
 | sapiens2_1b     | 1536       | 40         |
 | sapiens2_5b     | 2432       | 56         |
-
-The default config loads `sapiens2_0.4b` with pretrained weights at
-`./sapiens2/sapiens2_host/sapiens2_0.4b_seg.safetensors`.
 
 
 ## Training
@@ -138,4 +150,4 @@ If you find this work useful, please cite:
 
 ## Acknowledgement
 For the HOT model and dataset proposed by Chen et al., please click [HOT](https://github.com/yixchen/HOT) for details.
-These depth maps and masks were generated following the method proposed by Wang et al. [P3HOT](https://arxiv.org/abs/2507.01630) (ICCV 2025) for details.
+The depth maps and person masks are generated following Wang et al.: [PIHOT](https://github.com/YuxiaoWang-AI/PIHOT) (AAAI 2025) and [P3HOT](https://github.com/YuxiaoWang-AI/P3HOT) (ICCV 2025).
